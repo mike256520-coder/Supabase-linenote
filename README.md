@@ -1,6 +1,11 @@
 # Supabase/line-note資料庫
 
-line-note/eicBRtHRJsDdkgzd  
+ ***Supabase/line-note/eicBRtHRJsDdkgzd   ***
+
+Firestore記事本備分的 JSON 檔→ 匯入Supabase  
+https://mike256520-coder.github.io/Supabase-linenote/import-to-supabase.html  
+
+
 https://mike256520-coder.github.io/Supabase-linenote/  
 記事本備分200筆成json檔,  
 用import-to-supabase.html工具程式上傳到Supabase/line-note資料庫 -bak  
