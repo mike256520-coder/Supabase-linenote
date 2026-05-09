@@ -10,6 +10,7 @@ https://claude.ai/share/aa53b308-a308-4ad6-bfc1-33ad22c00f23
      https://mike256520-coder.github.io/Supabase-linenote/import-to-supabase.html  
 
 line記事本備分近200筆資料成 json檔,   
+https://mike256520-coder.github.io/Supabase-linenote/backup.html  
 
 
 Supabase-linenote的LINE pic記事本  
