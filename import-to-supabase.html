@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<!-- 本機JSON 檔匯入Supabase工具
+damie
+ANE0N-LZ7HA-9Y4IT-DBKA3-K7NIQ
+https://claude.ai/share/aa53b308-a308-4ad6-bfc1-33ad22c00f23
+Supabase URL 和 anon key 在 Supabase 專案 → Settings → API 裡找
+選擇你的**備份 JSON 檔** → 點「開始匯入」
+API URL:                  https://qixssnrbynszktzjzdwp.supabase.co
+Publishable key:    sb_publishable_i2pVLmcM0qkUJpj-rXj7JA_wbzsEaBT
+Secret keys:    
+eicBRtHRJsDdkgzd.....
+eicBRtHRJsDdkgzd
+-->
+<head>
+    <meta charset="UTF-8">
+    <title>JSON匯入 Supabase</title>
+    <style>
+        body { font-family: sans-serif; max-width: 560px; margin: 60px auto; padding: 0 20px; }
+        input, textarea { width: 100%; padding: 8px; margin: 6px 0 14px; box-sizing: border-box;
+                          border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        button { background: #3ecf8e; color: white; border: none; padding: 10px 28px;
+                 border-radius: 20px; font-size: 15px; cursor: pointer; }
+        button:disabled { background: #aaa; }
+        #log { margin-top: 20px; background: #f4f4f4; padding: 12px;
+               border-radius: 8px; font-size: 13px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h2>📥 Firestore記事本備分的 JSON 檔→ 匯入Supabase/line-note 資料庫</h2>
+
+    <label>Supabase Project URL</label>
+    <input id="sb-url" value="https://qixssnrbynszktzjzdwp.supabase.co" />
+
+    <label>Supabase Publishable key</label>
+    <input id="sb-key" value="sb_publishable_i2pVLmcM0qkUJpj-rXj7JA_wbzsEaBT" />
+
+    <label>選擇備份 JSON 檔</label>
+    <input type="file" id="json-file" accept=".json" />
+
+    <button id="import-btn">開始匯入Supabase/line-note 資料庫</button>
+    <div id="log">等待匯入...</div>
+
+<script>
+document.getElementById('import-btn').addEventListener('click', async () => {
+    const url = document.getElementById('sb-url').value.trim();
+    const key = document.getElementById('sb-key').value.trim();
+    const file = document.getElementById('json-file').files[0];
+    const log = document.getElementById('log');
+    const btn = document.getElementById('import-btn');
+
+    if (!url || !key || !file) { alert('請填寫所有欄位並選擇 JSON 檔'); return; }
+
+    btn.disabled = true;
+    log.textContent = '讀取 JSON...\n';
+
+    const text = await file.text();
+    const posts = JSON.parse(text);
+    log.textContent += `共 ${posts.length} 筆，開始匯入...\n`;
+
+    let ok = 0, fail = 0;
+    for (const post of posts) {
+        // 把 Firestore 欄位對應到 Supabase 欄位
+        const row = {
+            content:        post.content || '',
+            tags:           post.tags || [],
+            image_base64s:  post.imageBase64s || [],
+            link_preview:   post.linkPreview || null,
+            created_at:     post.createdAt || new Date().toISOString()
+        };
+
+        const res = await fetch(`${url}/rest/v1/posts`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': key,
+                'Authorization': `Bearer ${key}`,
+                'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify(row)
+        });
+
+        if (res.ok) { ok++; log.textContent += `✅ ${ok} 筆成功\n`; }
+        else {
+            fail++;
+            const err = await res.text();
+            log.textContent += `❌ 失敗：${err}\n`;
+        }
+        // 滾到最底
+        log.scrollTop = log.scrollHeight;
+    }
+
+    log.textContent += `\n完成！成功 ${ok} 筆，失敗 ${fail} 筆`;
+    btn.disabled = false;
+});
+</script>
+</body>
+</html>
