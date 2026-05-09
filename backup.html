@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<!-- 
+damie
+ANE0N-LZ7HA-9Y4IT-DBKA3-K7NIQ
+*有api就可以取資料
+近200筆貼文，自動下載成 JSON 檔
+-->
+<head>
+    <meta charset="UTF-8">
+    <title>Firestore/line-note資料庫備份工具</title>
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: 60px auto; text-align: center; }
+        button { background: #52d05a; color: white; border: none; padding: 12px 30px;
+                 border-radius: 20px; font-size: 16px; cursor: pointer; margin: 10px; }
+        button:disabled { background: #aaa; }
+        #status { margin-top: 20px; color: #555; }
+    </style>
+</head>
+<body>
+    <h2>📦 Firestore/line-note資料庫備份工具</h2>
+    <p>點擊後會讀取近200筆貼文，自動下載成 JSON 檔</p>
+    <button id="backup-btn">開始備份</button>
+    <div id="status"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs, orderBy, query, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyACO9osKdxj8x2-fAwxgUM0YA_zM2uCWwU",
+    authDomain: "line-note-9be19.firebaseapp.com",
+    projectId: "line-note-9be19",
+    storageBucket: "line-note-9be19.firebasestorage.app",
+    messagingSenderId: "186753935423",
+    appId: "1:186753935423:web:62a5d9cdf6a66eb8a2f08a"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+document.getElementById('backup-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('backup-btn');
+    const status = document.getElementById('status');
+    btn.disabled = true;
+    status.textContent = '讀取中...';
+
+    try {
+        const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(200));
+        const snapshot = await getDocs(q);
+
+        const posts = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            posts.push({
+                id: doc.id,
+                ...data,
+                // Firestore Timestamp 轉成可讀字串
+                createdAt: data.createdAt?.toDate().toISOString() || null
+            });
+        });
+
+        // 產生 JSON 並下載
+        const json = JSON.stringify(posts, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        a.href = url;
+        a.download = `firestore-backup-${dateStr}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        status.textContent = `✅ 備份完成！共 ${posts.length} 筆資料`;
+    } catch (e) {
+        status.textContent = '❌ 備份失敗：' + e.message;
+    } finally {
+        btn.disabled = false;
+    }
+});
+</script>
+</body>
+</html>
